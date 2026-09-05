@@ -1,6 +1,5 @@
 import { useEffect, useRef } from 'react'
 import mapboxgl from 'mapbox-gl'
-import 'mapbox-gl/dist/mapbox-gl.css'
 
 import {
   AL_MAJAZ_BOUNDS,
@@ -63,6 +62,15 @@ export function BaseMap() {
       }
       map.setTerrain({ source: 'mapbox-dem', exaggeration: TERRAIN_EXAGGERATION })
 
+      if (import.meta.env.DEV) {
+        ;(window as unknown as { __map?: typeof map }).__map = map
+      }
+
+      // Force one measure/paint cycle once the style is in. Without it the map
+      // can settle into a canvas sized before layout finished and never paint
+      // its first frame — the symptom is a viewport showing only sky.
+      map.resize()
+
       setMap(map)
       setReady(true)
     })
@@ -71,7 +79,16 @@ export function BaseMap() {
       console.error('[BaseMap]', event.error?.message ?? event)
     })
 
+    // Mapbox measures the container once, at construction. The dashboard sizes
+    // that container through a flex chain, so at that moment it can still be
+    // mid-layout and the map renders into a canvas of the wrong size — in
+    // practice, a viewport of empty sky. Observing the container keeps the
+    // canvas correct on first paint and on every later resize.
+    const observer = new ResizeObserver(() => map.resize())
+    observer.observe(container.current)
+
     return () => {
+      observer.disconnect()
       setReady(false)
       setMap(null)
       map.remove()

@@ -88,9 +88,16 @@ body {
   min-height: 0;
 }
 
+/*
+ * mapbox-gl.css sets .mapboxgl-map { position: relative }, and Mapbox adds that
+ * class to this very element. Explicit width/height keep the container filling
+ * .app__map no matter which stylesheet wins the cascade.
+ */
 .map-canvas {
   position: absolute;
   inset: 0;
+  width: 100%;
+  height: 100%;
 }
 
 /* --- Overlaid demo controls --------------------------------------------- */

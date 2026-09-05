@@ -27,10 +27,16 @@ export const INITIAL_VIEW = {
 /**
  * The camera is fenced to the Al-Majaz district. During a 4-minute live demo
  * an accidental pan to the middle of the Gulf costs more than it is worth.
+ *
+ * The box is deliberately wider than the area of interest: at a 62-degree
+ * pitch the camera sees a long way past its centre, and bounds drawn tightly
+ * around the waterfront make Mapbox shove the centre south to keep the view
+ * inside them — the map would open somewhere other than where INITIAL_VIEW
+ * asks for.
  */
 export const AL_MAJAZ_BOUNDS: LngLatBoundsLike = [
-  [55.352, 25.305], // south-west
-  [55.408, 25.352], // north-east
+  [55.33, 25.28], // south-west
+  [55.43, 25.375], // north-east
 ]
 
 export const MIN_ZOOM = 13
