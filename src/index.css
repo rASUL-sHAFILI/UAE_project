@@ -1,0 +1,212 @@
+:root {
+  --bg: #0a0e14;
+  --panel: rgba(16, 22, 32, 0.88);
+  --border: rgba(120, 145, 180, 0.22);
+  --text: #e6edf7;
+  --text-dim: #8b9bb4;
+  --accent: #3fa9ff;
+  --alert: #ff4d4d;
+  --radius: 8px;
+
+  color-scheme: dark;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.app {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.app__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 10px 18px;
+  border-bottom: 1px solid var(--border);
+  background: #0d131c;
+}
+
+.app__brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.app__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--alert);
+  box-shadow: 0 0 0 4px rgba(255, 77, 77, 0.16);
+}
+
+.app__header h1 {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.app__header p {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: var(--text-dim);
+}
+
+.app__phase {
+  font-size: 11px;
+  color: var(--text-dim);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 4px 10px;
+  white-space: nowrap;
+}
+
+.app__map {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+}
+
+.map-canvas {
+  position: absolute;
+  inset: 0;
+}
+
+/* --- Overlaid demo controls --------------------------------------------- */
+
+.map-controls {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  z-index: 1;
+}
+
+.map-controls__group {
+  display: flex;
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--panel);
+  backdrop-filter: blur(10px);
+}
+
+.map-controls__group button {
+  padding: 7px 12px;
+  border: 0;
+  border-right: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-dim);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.map-controls__group button:last-child {
+  border-right: 0;
+}
+
+.map-controls__group button:hover {
+  color: var(--text);
+}
+
+.map-controls__group button.is-active {
+  background: rgba(63, 169, 255, 0.16);
+  color: var(--accent);
+}
+
+.map-controls__reset {
+  align-self: flex-start;
+  padding: 7px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--panel);
+  backdrop-filter: blur(10px);
+  color: var(--text-dim);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.map-controls__reset:hover {
+  color: var(--text);
+}
+
+/* --- Missing-token fallback --------------------------------------------- */
+
+.map-placeholder {
+  display: grid;
+  place-items: center;
+  padding: 24px;
+}
+
+.map-placeholder__card {
+  max-width: 420px;
+  padding: 20px 24px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--panel);
+}
+
+.map-placeholder__card h2 {
+  margin: 0 0 12px;
+  font-size: 15px;
+}
+
+.map-placeholder__card ol {
+  margin: 0;
+  padding-left: 18px;
+  font-size: 13px;
+  line-height: 1.7;
+  color: var(--text-dim);
+}
+
+.map-placeholder__card code {
+  padding: 1px 5px;
+  border-radius: 4px;
+  background: rgba(120, 145, 180, 0.14);
+  color: var(--text);
+  font-size: 12px;
+}
+
+.map-placeholder__card a {
+  color: var(--accent);
+}
+
+/* Mapbox's own controls, restyled to match the dashboard. */
+.mapboxgl-ctrl-group {
+  background: var(--panel) !important;
+  border: 1px solid var(--border);
+  backdrop-filter: blur(10px);
+}
+
+.mapboxgl-ctrl-group button + button {
+  border-top: 1px solid var(--border);
+}
+
+.mapboxgl-ctrl-group button .mapboxgl-ctrl-icon {
+  filter: invert(1);
+}
