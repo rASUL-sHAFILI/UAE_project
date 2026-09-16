@@ -94,6 +94,51 @@ on stage. Do not write text directly in a component.
 Still open, and owned elsewhere: real routing from the router agent (straight
 lines stand in for routes today), and the live backend behind `VITE_WS_URL`.
 
+## Backend
+
+PostGIS and FastAPI, in Docker. Start it with the same file Vite reads, so the
+Mapbox token lives in one place:
+
+```bash
+npm run backend:up      # docker compose --env-file .env.local up -d
+npm run backend:logs
+npm run backend:down
+```
+
+`http://localhost:8000/health` reports what the system can actually do — a
+missing Mapbox token means no real routing and no real terrain, and a missing
+Anthropic key means the triage agent falls back to rules. Both are survivable
+and neither is hidden.
+
+For real LLM triage, add to `.env.local`:
+
+```
+ANTHROPIC_API_KEY=sk-ant-...
+```
+
+### What is real, and what is simulated
+
+Real: the ground (Mapbox Terrain-RGB elevation), the roads and travel times
+(Mapbox Directions), the places calls come from (Mapbox Streets), the spatial
+queries (PostGIS), the flood spread (a connected bathtub model over that
+elevation), and the triage classifier when a key is present.
+
+Simulated: the arrival of calls and the words the callers say. Nobody has a
+live feed of Sharjah's emergency line, and that is the one part that has to be
+invented. It lives behind `app/sim/`, emits the same shapes a real feed would,
+and is the only module that gets replaced when one exists.
+
+### Layout
+
+```
+backend/app/
+  models.py        PostGIS schema
+  api/             HTTP surface and serialisers
+  agents/          triage (Claude), allocator, router (Directions)
+  services/        spatial queries, WebSocket fan-out
+  sim/             terrain, flood model, places, call generator, engine
+```
+
 ## Commands
 
 | Command | What it does |

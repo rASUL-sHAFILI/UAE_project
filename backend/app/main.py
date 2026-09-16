@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import asyncio
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
@@ -10,8 +11,10 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 
 from .config import get_settings
-from .db import engine, init_database
+from .db import engine as db_engine, init_database
+from .api.routes import router
 from .services.events import bus
+from .sim.engine import engine as simulation
 
 logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s %(message)s")
 log = logging.getLogger("app")
@@ -28,8 +31,16 @@ async def lifespan(app: FastAPI):
         settings.has_mapbox,
         settings.has_anthropic,
     )
+    # Building the scenario reaches out to Mapbox for terrain and places on a
+    # cold cache, which takes long enough that doing it inside the first
+    # request would look like a hang. It runs in the background instead and the
+    # API answers /health throughout.
+    asyncio.create_task(_prepare_scenario())
+
     yield
-    await engine.dispose()
+
+    await simulation.stop()
+    await db_engine.dispose()
 
 
 app = FastAPI(
@@ -37,6 +48,8 @@ app = FastAPI(
     version="0.1.0",
     lifespan=lifespan,
 )
+
+app.include_router(router)
 
 app.add_middleware(
     CORSMiddleware,
@@ -47,6 +60,14 @@ app.add_middleware(
 )
 
 
+async def _prepare_scenario() -> None:
+    try:
+        await simulation.prepare()
+        await simulation.start()
+    except Exception:  # noqa: BLE001 - the API must stay up and say what failed
+        log.exception("scenario preparation failed")
+
+
 @app.get("/health")
 async def health() -> dict[str, object]:
     """Liveness plus the two facts that decide what the system can actually do.
@@ -55,7 +76,7 @@ async def health() -> dict[str, object]:
     routing and no real terrain, and without an Anthropic key the triage agent
     falls back to rules. Both are survivable and neither should be silent.
     """
-    async with engine.connect() as connection:
+    async with db_engine.connect() as connection:
         postgis = (await connection.execute(text("SELECT postgis_version()"))).scalar_one()
 
     return {
