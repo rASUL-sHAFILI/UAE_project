@@ -717,3 +717,278 @@ body {
     width: 300px;
   }
 }
+
+/* --- Connection badge ----------------------------------------------------- */
+
+.conn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 11px;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+.conn__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+
+.conn--live {
+  color: #4fd1c5;
+  border-color: rgba(79, 209, 197, 0.35);
+}
+
+.conn--mock {
+  color: #f5c542;
+  border-color: rgba(245, 197, 66, 0.3);
+}
+
+.conn--reconnecting,
+.conn--connecting {
+  color: var(--text-dim);
+}
+
+/* --- Approval modal ------------------------------------------------------- */
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(4, 7, 12, 0.72);
+  backdrop-filter: blur(3px);
+  z-index: 20;
+}
+
+.modal {
+  width: min(520px, 100%);
+  padding: 20px 22px;
+  border: 1px solid var(--border);
+  border-top: 3px solid var(--accent);
+  border-radius: 10px;
+  background: #101724;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+}
+
+.modal:focus {
+  outline: none;
+}
+
+.modal--high {
+  border-top-color: var(--alert);
+}
+
+.modal--low {
+  border-top-color: #f5c542;
+}
+
+.modal__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.modal__agent {
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.modal__risk {
+  padding: 2px 9px;
+  border-radius: 999px;
+  font-size: 10px;
+}
+
+.modal__risk--high {
+  background: rgba(255, 77, 77, 0.16);
+  color: #ff9a9a;
+}
+
+.modal__risk--low {
+  background: rgba(245, 197, 66, 0.16);
+  color: #f5c542;
+}
+
+.modal__kicker {
+  margin: 0 0 4px;
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.modal h2 {
+  margin: 0 0 16px;
+  font-size: 17px;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.modal__detail {
+  display: grid;
+  grid-template-columns: 92px 1fr;
+  gap: 6px 14px;
+  margin: 0 0 16px;
+  font-size: 12px;
+  line-height: 1.5;
+}
+
+.modal__detail dt {
+  color: var(--text-dim);
+}
+
+.modal__detail dd {
+  margin: 0;
+  color: #cad6e8;
+}
+
+.modal__paused {
+  margin: 0 0 14px;
+  font-size: 11px;
+  color: var(--text-dim);
+}
+
+.modal__countdown {
+  margin-bottom: 14px;
+  font-size: 11px;
+  color: #f5c542;
+  font-variant-numeric: tabular-nums;
+}
+
+.modal__bar {
+  margin-top: 5px;
+  height: 3px;
+  border-radius: 999px;
+  background: rgba(245, 197, 66, 0.18);
+  overflow: hidden;
+}
+
+.modal__bar div {
+  height: 100%;
+  background: #f5c542;
+}
+
+.modal__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.modal__actions button {
+  padding: 8px 18px;
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+.modal__reject {
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-dim);
+}
+
+.modal__reject:hover {
+  color: var(--text);
+}
+
+.modal__approve {
+  border: 1px solid rgba(63, 169, 255, 0.5);
+  background: rgba(63, 169, 255, 0.18);
+  color: var(--accent);
+  font-weight: 600;
+}
+
+.modal__approve:hover {
+  background: rgba(63, 169, 255, 0.28);
+}
+
+/* --- Notifications -------------------------------------------------------- */
+
+.toasts {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-width: 320px;
+  z-index: 15;
+}
+
+.toast {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 9px 13px;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--panel);
+  backdrop-filter: blur(10px);
+  font-size: 11px;
+}
+
+.toast strong {
+  font-size: 10px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.toast span {
+  color: var(--text-dim);
+  line-height: 1.4;
+}
+
+.toast--approved {
+  border-left-color: var(--accent);
+}
+
+.toast--approved strong {
+  color: var(--accent);
+}
+
+.toast--rejected {
+  border-left-color: var(--alert);
+}
+
+.toast--rejected strong {
+  color: #ff9a9a;
+}
+
+.toast--auto {
+  border-left-color: #f5c542;
+}
+
+.toast--auto strong {
+  color: #f5c542;
+}
+
+/* A low-risk proposal counts itself down beside the map instead of over it. */
+.modal--floating {
+  position: fixed;
+  right: 16px;
+  bottom: 16px;
+  width: min(380px, calc(100vw - 32px));
+  padding: 15px 17px;
+  z-index: 16;
+}
+
+.modal--floating h2 {
+  margin-bottom: 12px;
+  font-size: 14px;
+}
+
+.modal--floating .modal__detail {
+  grid-template-columns: 78px 1fr;
+  font-size: 11px;
+}

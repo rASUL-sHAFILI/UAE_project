@@ -110,6 +110,38 @@ export const TRANSLATIONS = {
   'unitStatus.available': { az: 'Boşdur', en: 'Available' },
   'unitStatus.dispatched': { az: 'Yoldadır', en: 'En route' },
   'unitStatus.busy': { az: 'Hadisədədir', en: 'On scene' },
+  'modal.needsApproval': {
+    az: 'Avtonom əməliyyat təsdiq gözləyir',
+    en: 'Autonomous action needs approval',
+  },
+  'modal.running': { az: 'Avtonom əməliyyat icra olunur', en: 'Autonomous action running' },
+  'modal.rationale': { az: 'Səbəb', en: 'Rationale' },
+  'modal.impact': { az: 'Nəticə', en: 'Impact' },
+  'modal.confidence': { az: 'Əminlik', en: 'Confidence' },
+  'modal.approve': { az: 'Təsdiqlə', en: 'Approve' },
+  'modal.reject': { az: 'İmtina et', en: 'Reject' },
+  'modal.cancelAuto': { az: 'Dayandır', en: 'Stop' },
+  'modal.autoIn': { az: 'Avtomatik təsdiq', en: 'Auto-approving in' },
+  'modal.paused': {
+    az: 'Ssenari qərar verilənə qədər dayandırıldı',
+    en: 'Scenario paused until you decide',
+  },
+
+  'agent.triage': { az: 'Triaj agenti', en: 'Triage agent' },
+  'agent.allocator': { az: 'Resurs agenti', en: 'Allocator agent' },
+  'agent.router': { az: 'Marşrut agenti', en: 'Router agent' },
+
+  'risk.low': { az: 'Aşağı risk', en: 'Low risk' },
+  'risk.high': { az: 'Yüksək risk', en: 'High risk' },
+
+  'notif.approved': { az: 'Təsdiqləndi', en: 'Approved' },
+  'notif.rejected': { az: 'İmtina edildi', en: 'Rejected' },
+  'notif.auto': { az: 'Avtomatik icra olundu', en: 'Carried out automatically' },
+
+  'conn.live': { az: 'Canlı', en: 'Live' },
+  'conn.mock': { az: 'Ssenari axını', en: 'Scripted feed' },
+  'conn.connecting': { az: 'Qoşulur', en: 'Connecting' },
+  'conn.reconnecting': { az: 'Yenidən qoşulur', en: 'Reconnecting' },
 } as const satisfies Record<string, Entry>
 
 export type TranslationKey = keyof typeof TRANSLATIONS

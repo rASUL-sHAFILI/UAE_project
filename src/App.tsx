@@ -3,8 +3,12 @@ import { FloodLayers } from './components/map/FloodLayers'
 import { MapControls } from './components/map/MapControls'
 import { OperationsLayers } from './components/map/OperationsLayers'
 import { ScenarioClock } from './components/map/ScenarioClock'
+import { ApprovalModal } from './components/modal/ApprovalModal'
 import { EmergencyPanel } from './components/panel/EmergencyPanel'
+import { ConnectionBadge } from './components/ui/ConnectionBadge'
 import { LanguageSwitcher } from './components/ui/LanguageSwitcher'
+import { NotificationStack } from './components/ui/NotificationStack'
+import { useEventStream } from './hooks/useEventStream'
 import { useFlyToSelection } from './hooks/useFlyToSelection'
 import { useScenarioClock } from './hooks/useScenarioClock'
 import { useTranslation } from './i18n/useTranslation'
@@ -20,6 +24,7 @@ export default function App() {
   const { t } = useTranslation()
 
   useScenarioClock()
+  useEventStream()
   useFlyToSelection()
 
   return (
@@ -33,6 +38,7 @@ export default function App() {
           </div>
         </div>
         <div className="app__actions">
+          <ConnectionBadge />
           <span className="app__phase">{t('app.phase')}</span>
           <LanguageSwitcher />
         </div>
@@ -49,6 +55,9 @@ export default function App() {
 
         <EmergencyPanel />
       </div>
+
+      <NotificationStack />
+      <ApprovalModal />
     </div>
   )
 }
