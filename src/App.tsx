@@ -1,5 +1,8 @@
 import { BaseMap } from './components/map/BaseMap'
+import { FloodLayers } from './components/map/FloodLayers'
 import { MapControls } from './components/map/MapControls'
+import { ScenarioClock } from './components/map/ScenarioClock'
+import { useScenarioClock } from './hooks/useScenarioClock'
 
 /**
  * Application shell.
@@ -9,6 +12,8 @@ import { MapControls } from './components/map/MapControls'
  * `MapControls` without changing this layout.
  */
 export default function App() {
+  useScenarioClock()
+
   return (
     <div className="app">
       <header className="app__header">
@@ -19,12 +24,14 @@ export default function App() {
             <p>Sharjah, UAE · Daşqın və fövqəladə hal idarəetməsi</p>
           </div>
         </div>
-        <span className="app__phase">Həftə 1-2 · 3D baza xəritəsi</span>
+        <span className="app__phase">Həftə 3-4 · Daşqın heatmap və su səviyyəsi</span>
       </header>
 
       <main className="app__map">
         <BaseMap />
+        <FloodLayers />
         <MapControls />
+        <ScenarioClock />
       </main>
     </div>
   )

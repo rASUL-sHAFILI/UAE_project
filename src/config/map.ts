@@ -56,12 +56,16 @@ export const DEFAULT_LIGHT_PRESET: LightPreset = 'dusk'
  * Standard exposes three insertion slots. Custom layers must declare one,
  * otherwise they are drawn on top of every label in the basemap.
  *
- * - `bottom`  — below roads and buildings (flood polygons, water rise)
- * - `middle`  — below labels, above roads (heatmaps, incident zones)
+ * - `bottom`  — below roads and buildings
+ * - `middle`  — below labels, above roads (heatmaps, flood water, zones)
  * - `top`     — above everything (rescue units, markers, routes)
+ *
+ * Flood water sits in `middle`, not `bottom`. Standing water covers the road;
+ * drawn underneath it the basemap's own road fills sit on top of the flood and
+ * the street reads as dry, which is the opposite of what the map is for.
  */
 export const SLOTS = {
-  flood: 'bottom',
+  flood: 'middle',
   heatmap: 'middle',
   units: 'top',
 } as const
