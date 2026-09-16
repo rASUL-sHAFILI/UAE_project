@@ -1,0 +1,52 @@
+# Al-Majaz emergency response — backend stack.
+#
+# Two services: a PostGIS database and the FastAPI application that owns it.
+# The frontend is not in here on purpose; it runs on Vite in development and is
+# deployed separately, and putting it behind Docker would only slow the loop
+# the person editing it works in.
+
+services:
+  db:
+    image: postgis/postgis:16-3.4
+    container_name: al-majaz-db
+    environment:
+      POSTGRES_USER: almajaz
+      POSTGRES_PASSWORD: almajaz
+      POSTGRES_DB: almajaz
+    ports:
+      # Exposed so psql and the tests can reach it from the host.
+      - "5432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql/data
+    healthcheck:
+      # The API waits for this rather than for the container to exist: Postgres
+      # accepts connections several seconds after the process starts, and an
+      # API that connects too early dies on boot.
+      test: ["CMD-SHELL", "pg_isready -U almajaz -d almajaz"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+
+  api:
+    build: ./backend
+    container_name: al-majaz-api
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+asyncpg://almajaz:almajaz@db:5432/almajaz
+      # Passed through from the host so keys never live in the image.
+      MAPBOX_TOKEN: ${VITE_MAPBOX_TOKEN:-}
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      CORS_ORIGINS: http://localhost:5173,http://localhost:5174
+    ports:
+      - "8000:8000"
+    volumes:
+      # Bind-mounted so uvicorn's reloader picks up edits without a rebuild.
+      - ./backend/app:/srv/app
+      - terrain-cache:/srv/cache
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
+
+volumes:
+  db-data:
+  terrain-cache:

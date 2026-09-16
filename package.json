@@ -7,7 +7,11 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "oxlint",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "backend:up": "docker compose --env-file .env.local up -d",
+    "backend:down": "docker compose down",
+    "backend:logs": "docker compose logs -f api",
+    "backend:rebuild": "docker compose --env-file .env.local up -d --build"
   },
   "dependencies": {
     "@types/mapbox-gl": "^3.4.1",
