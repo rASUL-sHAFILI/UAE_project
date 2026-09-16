@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 
 import { useTranslation } from '../../i18n/useTranslation'
 import type { TranslationKey } from '../../i18n/translations'
@@ -10,6 +10,48 @@ const AGENT_KEY = {
   allocator: 'agent.allocator',
   router: 'agent.router',
 } as const satisfies Record<string, TranslationKey>
+
+/**
+ * The countdown on an auto-approving proposal.
+ *
+ * Its own component, mounted with the proposal id as its key, so the deadline
+ * is fixed once by the state initialiser when the proposal appears. Keeping it
+ * in the parent would mean either resetting state from an effect or stashing
+ * the deadline in a ref and reading it back during render.
+ */
+function AutoCountdown({ seconds, onElapsed }: { seconds: number; onElapsed: () => void }) {
+  const { t } = useTranslation()
+  const [deadline] = useState(() => performance.now() + seconds * 1000)
+  const [remaining, setRemaining] = useState(seconds)
+
+  // Restarting the interval on a new callback identity is harmless: the time
+  // left is measured from the fixed deadline, not from when the timer began.
+  useEffect(() => {
+    const timer = window.setInterval(() => {
+      const left = (deadline - performance.now()) / 1000
+      if (left <= 0) {
+        window.clearInterval(timer)
+        setRemaining(0)
+        onElapsed()
+        return
+      }
+      setRemaining(left)
+    }, 100)
+
+    return () => window.clearInterval(timer)
+  }, [deadline, onElapsed])
+
+  return (
+    <div className="modal__countdown">
+      <span>
+        {t('modal.autoIn')} {Math.ceil(remaining)}s
+      </span>
+      <div className="modal__bar">
+        <div style={{ width: `${(remaining / seconds) * 100}%` }} />
+      </div>
+    </div>
+  )
+}
 
 /**
  * The human-in-the-loop step.
@@ -24,35 +66,8 @@ export function ApprovalModal() {
   const proposal = useAgentStore((state) => state.pending[0])
   const decide = useAgentStore((state) => state.decide)
 
-  const [secondsLeft, setSecondsLeft] = useState<number | null>(null)
   const dialog = useRef<HTMLDivElement>(null)
-
-  const autoSeconds = proposal?.autoApproveSeconds
   const proposalId = proposal?.id
-
-  // Run the countdown for auto-approving proposals.
-  useEffect(() => {
-    if (!proposalId || autoSeconds === undefined) {
-      setSecondsLeft(null)
-      return
-    }
-
-    setSecondsLeft(autoSeconds)
-    const started = performance.now()
-
-    const timer = window.setInterval(() => {
-      const remaining = autoSeconds - (performance.now() - started) / 1000
-      if (remaining <= 0) {
-        window.clearInterval(timer)
-        setSecondsLeft(0)
-        decide(proposalId, true, 'auto', useScenarioStore.getState().minute)
-        return
-      }
-      setSecondsLeft(remaining)
-    }, 100)
-
-    return () => window.clearInterval(timer)
-  }, [proposalId, autoSeconds, decide])
 
   // Move focus into the dialog so a keyboard operator is not left on the page
   // behind it, and let Escape reject.
@@ -69,14 +84,16 @@ export function ApprovalModal() {
     return () => window.removeEventListener('keydown', onKeyDown)
   }, [proposalId, decide])
 
+  const autoApprove = useCallback(() => {
+    if (!proposalId) return
+    decide(proposalId, true, 'auto', useScenarioStore.getState().minute)
+  }, [proposalId, decide])
+
   if (!proposal) return null
 
-  const isAuto = proposal.autoApproveSeconds !== undefined
+  const autoSeconds = proposal.autoApproveSeconds
+  const isAuto = autoSeconds !== undefined
   const minute = () => useScenarioStore.getState().minute
-  const progress =
-    isAuto && secondsLeft !== null && proposal.autoApproveSeconds
-      ? secondsLeft / proposal.autoApproveSeconds
-      : 0
 
   const body = (
     <div
@@ -109,15 +126,8 @@ export function ApprovalModal() {
         <dd>{Math.round(proposal.confidence * 100)}%</dd>
       </dl>
 
-      {isAuto && secondsLeft !== null ? (
-        <div className="modal__countdown">
-          <span>
-            {t('modal.autoIn')} {Math.ceil(secondsLeft)}s
-          </span>
-          <div className="modal__bar">
-            <div style={{ width: `${progress * 100}%` }} />
-          </div>
-        </div>
+      {autoSeconds !== undefined ? (
+        <AutoCountdown key={proposal.id} seconds={autoSeconds} onElapsed={autoApprove} />
       ) : (
         <p className="modal__paused">{t('modal.paused')}</p>
       )}
