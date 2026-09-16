@@ -1,18 +1,26 @@
 import { BaseMap } from './components/map/BaseMap'
 import { FloodLayers } from './components/map/FloodLayers'
 import { MapControls } from './components/map/MapControls'
+import { OperationsLayers } from './components/map/OperationsLayers'
 import { ScenarioClock } from './components/map/ScenarioClock'
+import { EmergencyPanel } from './components/panel/EmergencyPanel'
+import { LanguageSwitcher } from './components/ui/LanguageSwitcher'
+import { useFlyToSelection } from './hooks/useFlyToSelection'
 import { useScenarioClock } from './hooks/useScenarioClock'
+import { useTranslation } from './i18n/useTranslation'
 
 /**
  * Application shell.
  *
- * The map occupies the full viewport and every panel is overlaid on top of it.
- * The emergency panel and the incident list (week 5-6) slot in beside
- * `MapControls` without changing this layout.
+ * A dispatcher's screen: the map carries the situation and the panel beside it
+ * carries the work. The two share one clock, so nothing on screen can disagree
+ * with anything else about what time it is.
  */
 export default function App() {
+  const { t } = useTranslation()
+
   useScenarioClock()
+  useFlyToSelection()
 
   return (
     <div className="app">
@@ -20,19 +28,27 @@ export default function App() {
         <div className="app__brand">
           <span className="app__dot" aria-hidden="true" />
           <div>
-            <h1>Al-Majaz Emergency Response</h1>
-            <p>Sharjah, UAE · Daşqın və fövqəladə hal idarəetməsi</p>
+            <h1>{t('app.title')}</h1>
+            <p>{t('app.subtitle')}</p>
           </div>
         </div>
-        <span className="app__phase">Həftə 3-4 · Daşqın heatmap və su səviyyəsi</span>
+        <div className="app__actions">
+          <span className="app__phase">{t('app.phase')}</span>
+          <LanguageSwitcher />
+        </div>
       </header>
 
-      <main className="app__map">
-        <BaseMap />
-        <FloodLayers />
-        <MapControls />
-        <ScenarioClock />
-      </main>
+      <div className="app__body">
+        <main className="app__map">
+          <BaseMap />
+          <FloodLayers />
+          <OperationsLayers />
+          <MapControls />
+          <ScenarioClock />
+        </main>
+
+        <EmergencyPanel />
+      </div>
     </div>
   )
 }

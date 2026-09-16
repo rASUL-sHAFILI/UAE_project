@@ -1,17 +1,12 @@
 import { PLAYBACK_SPEEDS, SCENARIO_DURATION_MINUTES } from '../../config/scenario'
 import { floodedAreaAt, peakDepthAt, scenarioTime } from '../../data/floodScenario'
+import { useTranslation } from '../../i18n/useTranslation'
 import { useScenarioStore } from '../../store/scenarioStore'
-
-const TIME_FORMAT = new Intl.DateTimeFormat('az-AZ', {
-  hour: '2-digit',
-  minute: '2-digit',
-  timeZone: 'Asia/Dubai',
-})
 
 function formatElapsed(minute: number): string {
   const hours = Math.floor(minute / 60)
   const minutes = Math.floor(minute % 60)
-  return `T+${hours}s ${String(minutes).padStart(2, '0')}d`
+  return `T+${hours}:${String(minutes).padStart(2, '0')}`
 }
 
 /**
@@ -22,6 +17,7 @@ function formatElapsed(minute: number): string {
  * answered by dragging back, rather than restarting the run.
  */
 export function ScenarioClock() {
+  const { t, locale } = useTranslation()
   const minute = useScenarioStore((state) => state.minute)
   const isPlaying = useScenarioStore((state) => state.isPlaying)
   const speed = useScenarioStore((state) => state.speed)
@@ -29,6 +25,12 @@ export function ScenarioClock() {
   const reset = useScenarioStore((state) => state.reset)
   const setMinute = useScenarioStore((state) => state.setMinute)
   const setSpeed = useScenarioStore((state) => state.setSpeed)
+
+  const clockFormat = new Intl.DateTimeFormat(locale, {
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: 'Asia/Dubai',
+  })
 
   const peakDepth = peakDepthAt(minute)
   const floodedHectares = floodedAreaAt(minute) / 10_000
@@ -40,13 +42,13 @@ export function ScenarioClock() {
           type="button"
           className="clock__play"
           onClick={toggle}
-          aria-label={isPlaying ? 'Dayandır' : 'Oynat'}
+          aria-label={isPlaying ? t('clock.pause') : t('clock.play')}
         >
           {isPlaying ? '❚❚' : '▶'}
         </button>
 
         <div className="clock__time">
-          <strong>{TIME_FORMAT.format(scenarioTime(minute))}</strong>
+          <strong>{clockFormat.format(scenarioTime(minute))}</strong>
           <span>{formatElapsed(minute)}</span>
         </div>
 
@@ -58,10 +60,10 @@ export function ScenarioClock() {
           step={1}
           value={Math.round(minute)}
           onChange={(event) => setMinute(Number(event.target.value))}
-          aria-label="Ssenari vaxtı"
+          aria-label={t('clock.timeline')}
         />
 
-        <div className="clock__speeds" role="group" aria-label="Sürət">
+        <div className="clock__speeds" role="group" aria-label={t('clock.speed')}>
           {PLAYBACK_SPEEDS.map((option) => (
             <button
               key={option}
@@ -75,16 +77,16 @@ export function ScenarioClock() {
         </div>
 
         <button type="button" className="clock__reset" onClick={reset}>
-          Sıfırla
+          {t('clock.reset')}
         </button>
       </div>
 
       <div className="clock__stats">
         <span>
-          Ən dərin su <strong>{peakDepth.toFixed(2)} m</strong>
+          {t('clock.peakDepth')} <strong>{peakDepth.toFixed(2)} m</strong>
         </span>
         <span>
-          Su altında <strong>{floodedHectares.toFixed(1)} ha</strong>
+          {t('clock.floodedArea')} <strong>{floodedHectares.toFixed(1)} ha</strong>
         </span>
       </div>
     </div>

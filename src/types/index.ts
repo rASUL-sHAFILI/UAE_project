@@ -15,28 +15,42 @@ export type Priority = 1 | 2 | 3 | 4 | 5
 
 export type IncidentKind = 'flood' | 'traffic' | 'medical' | 'fire' | 'rescue'
 
+export type IncidentStatus = 'pending' | 'assigned' | 'en_route' | 'resolved'
+
 export interface Incident {
   id: string
   kind: IncidentKind
   priority: Priority
   location: Coordinates
-  /** Human-readable place, e.g. "Al Majaz Waterfront, Gate 3". */
-  address: string
-  /** Free-text summary of the emergency call. */
-  description: string
+  /** Human-readable place, e.g. "Al Majaz Waterfront, Gate 3", per language. */
+  address: { az: string; en: string }
+  /** Free-text summary of the emergency call, per language. */
+  description: { az: string; en: string }
   reportedAt: string
-  status: 'pending' | 'assigned' | 'en_route' | 'resolved'
+  /** Scenario minute the call came in, used to replay the timeline. */
+  reportedAtMinute: number
+  status: IncidentStatus
+  /** Unit currently working this incident, once one has been assigned. */
+  assignedUnitId?: string
+  /** How many people the call reports, when the caller said. */
+  peopleAffected?: number
 }
 
 export type UnitKind = 'ambulance' | 'fire_truck' | 'police' | 'rescue_boat'
 
+export type UnitStatus = 'available' | 'dispatched' | 'busy'
+
 export interface RescueUnit {
   id: string
+  /** Radio call sign shown in the roster, e.g. "AMB-04". */
+  callSign: string
   kind: UnitKind
   location: Coordinates
-  status: 'available' | 'dispatched' | 'busy'
+  status: UnitStatus
   /** Incident this unit is currently assigned to, if any. */
   assignedIncidentId?: string
+  /** Minutes until the unit reaches its incident, when it is moving. */
+  etaMinutes?: number
 }
 
 /** One sample of the flood surface, used to feed the heatmap layer. */

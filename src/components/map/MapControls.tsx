@@ -1,11 +1,13 @@
 import { INITIAL_VIEW, type LightPreset } from '../../config/map'
+import { useTranslation } from '../../i18n/useTranslation'
+import type { TranslationKey } from '../../i18n/translations'
 import { useMapStore } from '../../store/mapStore'
 
-const PRESETS: { value: LightPreset; label: string }[] = [
-  { value: 'dawn', label: 'Səhər' },
-  { value: 'day', label: 'Gündüz' },
-  { value: 'dusk', label: 'Qürub' },
-  { value: 'night', label: 'Gecə' },
+const PRESETS: { value: LightPreset; label: TranslationKey }[] = [
+  { value: 'dawn', label: 'map.light.dawn' },
+  { value: 'day', label: 'map.light.day' },
+  { value: 'dusk', label: 'map.light.dusk' },
+  { value: 'night', label: 'map.light.night' },
 ]
 
 /**
@@ -13,6 +15,7 @@ const PRESETS: { value: LightPreset; label: string }[] = [
  * the presenter can drive the scene without touching the scenario timeline.
  */
 export function MapControls() {
+  const { t } = useTranslation()
   const map = useMapStore((s) => s.map)
   const isReady = useMapStore((s) => s.isReady)
   const lightPreset = useMapStore((s) => s.lightPreset)
@@ -22,7 +25,7 @@ export function MapControls() {
 
   return (
     <div className="map-controls">
-      <div className="map-controls__group" role="group" aria-label="İşıqlandırma">
+      <div className="map-controls__group" role="group" aria-label={t('map.lighting')}>
         {PRESETS.map((preset) => (
           <button
             key={preset.value}
@@ -30,7 +33,7 @@ export function MapControls() {
             className={preset.value === lightPreset ? 'is-active' : undefined}
             onClick={() => setLightPreset(preset.value)}
           >
-            {preset.label}
+            {t(preset.label)}
           </button>
         ))}
       </div>
@@ -39,7 +42,7 @@ export function MapControls() {
         className="map-controls__reset"
         onClick={() => map?.flyTo({ ...INITIAL_VIEW, duration: 1600, essential: true })}
       >
-        Al-Majaz görünüşünə qayıt
+        {t('map.resetView')}
       </button>
     </div>
   )
