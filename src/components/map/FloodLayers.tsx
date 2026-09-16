@@ -1,10 +1,10 @@
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import type { FeatureCollection } from 'geojson'
 
 import { SLOTS } from '../../config/map'
 import { floodExtentGeoJSON, floodReadingsGeoJSON } from '../../data/floodScenario'
 import { useMapStore } from '../../store/mapStore'
-import { useScenarioStore } from '../../store/scenarioStore'
+import { selectWholeMinute, useScenarioStore } from '../../store/scenarioStore'
 
 const READINGS_SOURCE = 'flood-readings'
 const EXTENT_SOURCE = 'flood-extent'
@@ -27,7 +27,10 @@ const EMPTY: FeatureCollection = { type: 'FeatureCollection', features: [] }
 export function FloodLayers() {
   const map = useMapStore((state) => state.map)
   const isReady = useMapStore((state) => state.isReady)
-  const minute = useScenarioStore((state) => state.minute)
+  // Flood extents change on a schedule, not continuously, so whole minutes
+  // are all this layer can tell apart — and rebuilding two hundred features
+  // sixty times a second is what made playback stutter.
+  const minute = useScenarioStore(selectWholeMinute)
 
   // Create the sources and layers once per map instance.
   useEffect(() => {
@@ -131,17 +134,20 @@ export function FloodLayers() {
     }
   }, [map, isReady])
 
-  // Push new data on every tick of the scenario clock.
+  const readings = useMemo(() => floodReadingsGeoJSON(minute), [minute])
+  const extent = useMemo(() => floodExtentGeoJSON(minute), [minute])
+
+  // Push new data when the minute the layer cares about changes.
   useEffect(() => {
     if (!map || !isReady) return
 
-    const readings = map.getSource(READINGS_SOURCE)
-    const extent = map.getSource(EXTENT_SOURCE)
-    if (readings?.type !== 'geojson' || extent?.type !== 'geojson') return
+    const readingsSource = map.getSource(READINGS_SOURCE)
+    const extentSource = map.getSource(EXTENT_SOURCE)
+    if (readingsSource?.type !== 'geojson' || extentSource?.type !== 'geojson') return
 
-    readings.setData(floodReadingsGeoJSON(minute))
-    extent.setData(floodExtentGeoJSON(minute))
-  }, [map, isReady, minute])
+    readingsSource.setData(readings)
+    extentSource.setData(extent)
+  }, [map, isReady, readings, extent])
 
   return null
 }

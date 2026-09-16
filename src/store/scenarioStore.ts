@@ -50,3 +50,25 @@ export const useScenarioStore = create<ScenarioState>((set, get) => ({
     set({ minute: next })
   },
 }))
+
+/**
+ * Quantised views of the clock.
+ *
+ * The clock advances on every animation frame, which is what makes playback
+ * smooth — but a selector that returns the raw minute re-renders its subscriber
+ * sixty times a second, and most of what reads the clock does real work each
+ * time: rebuilding two hundred GeoJSON features, re-sorting the incident list,
+ * re-rendering twenty rows. Zustand only re-renders when the selected value
+ * actually changes, so each consumer selects the coarsest value it can live
+ * with and the expensive work runs at that rate instead.
+ */
+
+/** Whole simulated minutes. Everything that changes on a schedule uses this. */
+export const selectWholeMinute = (state: { minute: number }) => Math.floor(state.minute)
+
+/**
+ * Eighths of a minute, for the handful of moving markers. Fine enough that
+ * units glide rather than hop, coarse enough to cost a fraction of a frame.
+ */
+export const selectSmoothMinute = (state: { minute: number }) =>
+  Math.round(state.minute * 8) / 8

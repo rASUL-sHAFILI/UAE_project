@@ -1,3 +1,5 @@
+import { memo } from 'react'
+
 import { UNITS } from '../../data/opsScenario'
 import { useTranslation } from '../../i18n/useTranslation'
 import type { TranslationKey } from '../../i18n/translations'
@@ -20,21 +22,32 @@ const STATUS_KEY: Record<Incident['status'], TranslationKey> = {
 
 const CALL_SIGNS = new Map(UNITS.map((unit) => [unit.id, unit.callSign]))
 
+/** Built once per locale rather than once per row, per render. */
+const FORMATTERS = new Map<string, Intl.DateTimeFormat>()
+
+function reportedFormat(locale: string): Intl.DateTimeFormat {
+  const cached = FORMATTERS.get(locale)
+  if (cached) return cached
+
+  const formatter = new Intl.DateTimeFormat(locale, {
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: 'Asia/Dubai',
+  })
+  FORMATTERS.set(locale, formatter)
+  return formatter
+}
+
 interface Props {
   incident: Incident
   isSelected: boolean
   onSelect: (incidentId: string) => void
 }
 
-/** One emergency call in the dispatcher's list. */
-export function IncidentRow({ incident, isSelected, onSelect }: Props) {
+function IncidentRowInner({ incident, isSelected, onSelect }: Props) {
   const { t, language, locale } = useTranslation()
 
-  const reported = new Intl.DateTimeFormat(locale, {
-    hour: '2-digit',
-    minute: '2-digit',
-    timeZone: 'Asia/Dubai',
-  }).format(new Date(incident.reportedAt))
+  const reported = reportedFormat(locale).format(new Date(incident.reportedAt))
 
   const classes = [
     'incident',
@@ -75,3 +88,11 @@ export function IncidentRow({ incident, isSelected, onSelect }: Props) {
     </button>
   )
 }
+
+/**
+ * One emergency call in the dispatcher's list.
+ *
+ * Memoised because the list re-renders whenever anything in it changes, and a
+ * row whose incident and selection are untouched has nothing new to draw.
+ */
+export const IncidentRow = memo(IncidentRowInner)

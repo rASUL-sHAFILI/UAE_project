@@ -1,7 +1,26 @@
 import { PLAYBACK_SPEEDS, SCENARIO_DURATION_MINUTES } from '../../config/scenario'
 import { floodedAreaAt, peakDepthAt, scenarioTime } from '../../data/floodScenario'
 import { useTranslation } from '../../i18n/useTranslation'
-import { useScenarioStore } from '../../store/scenarioStore'
+import { selectWholeMinute, useScenarioStore } from '../../store/scenarioStore'
+
+/**
+ * Date formatters are expensive to build and this one was being rebuilt on
+ * every render of a component that renders as fast as the clock ticks.
+ */
+const FORMATTERS = new Map<string, Intl.DateTimeFormat>()
+
+function clockFormat(locale: string): Intl.DateTimeFormat {
+  const cached = FORMATTERS.get(locale)
+  if (cached) return cached
+
+  const formatter = new Intl.DateTimeFormat(locale, {
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: 'Asia/Dubai',
+  })
+  FORMATTERS.set(locale, formatter)
+  return formatter
+}
 
 function formatElapsed(minute: number): string {
   const hours = Math.floor(minute / 60)
@@ -18,7 +37,7 @@ function formatElapsed(minute: number): string {
  */
 export function ScenarioClock() {
   const { t, locale } = useTranslation()
-  const minute = useScenarioStore((state) => state.minute)
+  const minute = useScenarioStore(selectWholeMinute)
   const isPlaying = useScenarioStore((state) => state.isPlaying)
   const speed = useScenarioStore((state) => state.speed)
   const toggle = useScenarioStore((state) => state.toggle)
@@ -26,11 +45,6 @@ export function ScenarioClock() {
   const setMinute = useScenarioStore((state) => state.setMinute)
   const setSpeed = useScenarioStore((state) => state.setSpeed)
 
-  const clockFormat = new Intl.DateTimeFormat(locale, {
-    hour: '2-digit',
-    minute: '2-digit',
-    timeZone: 'Asia/Dubai',
-  })
 
   const peakDepth = peakDepthAt(minute)
   const floodedHectares = floodedAreaAt(minute) / 10_000
@@ -48,7 +62,7 @@ export function ScenarioClock() {
         </button>
 
         <div className="clock__time">
-          <strong>{clockFormat.format(scenarioTime(minute))}</strong>
+          <strong>{clockFormat(locale).format(scenarioTime(minute))}</strong>
           <span>{formatElapsed(minute)}</span>
         </div>
 

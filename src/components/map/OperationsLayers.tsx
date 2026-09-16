@@ -1,11 +1,15 @@
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import type { FeatureCollection, Point } from 'geojson'
 
 import { SLOTS } from '../../config/map'
 import { incidentsAt, unitsAt } from '../../data/opsScenario'
 import { useOpsStore } from '../../store/opsStore'
 import { useMapStore } from '../../store/mapStore'
-import { useScenarioStore } from '../../store/scenarioStore'
+import {
+  selectSmoothMinute,
+  selectWholeMinute,
+  useScenarioStore,
+} from '../../store/scenarioStore'
 
 const INCIDENT_SOURCE = 'incidents'
 const UNIT_SOURCE = 'units'
@@ -65,7 +69,11 @@ function unitsGeoJSON(minute: number): FeatureCollection<Point> {
 export function OperationsLayers() {
   const map = useMapStore((state) => state.map)
   const isReady = useMapStore((state) => state.isReady)
-  const minute = useScenarioStore((state) => state.minute)
+  // Incidents change status on a schedule; units move continuously. Reading
+  // the clock at two different resolutions keeps the markers gliding without
+  // rebuilding the incident layer on every frame.
+  const incidentMinute = useScenarioStore(selectWholeMinute)
+  const unitMinute = useScenarioStore(selectSmoothMinute)
   const selectedIncidentId = useOpsStore((state) => state.selectedIncidentId)
   const toggleIncident = useOpsStore((state) => state.toggle)
 
@@ -205,16 +213,23 @@ export function OperationsLayers() {
     }
   }, [map, isReady, toggleIncident])
 
+  const incidentData = useMemo(
+    () => incidentsGeoJSON(incidentMinute, selectedIncidentId),
+    [incidentMinute, selectedIncidentId],
+  )
+  const unitData = useMemo(() => unitsGeoJSON(unitMinute), [unitMinute])
+
   useEffect(() => {
     if (!map || !isReady) return
+    const source = map.getSource(INCIDENT_SOURCE)
+    if (source?.type === 'geojson') source.setData(incidentData)
+  }, [map, isReady, incidentData])
 
-    const incidents = map.getSource(INCIDENT_SOURCE)
-    const units = map.getSource(UNIT_SOURCE)
-    if (incidents?.type !== 'geojson' || units?.type !== 'geojson') return
-
-    incidents.setData(incidentsGeoJSON(minute, selectedIncidentId))
-    units.setData(unitsGeoJSON(minute))
-  }, [map, isReady, minute, selectedIncidentId])
+  useEffect(() => {
+    if (!map || !isReady) return
+    const source = map.getSource(UNIT_SOURCE)
+    if (source?.type === 'geojson') source.setData(unitData)
+  }, [map, isReady, unitData])
 
   return null
 }

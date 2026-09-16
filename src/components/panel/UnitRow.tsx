@@ -1,3 +1,5 @@
+import { memo } from 'react'
+
 import { useTranslation } from '../../i18n/useTranslation'
 import type { TranslationKey } from '../../i18n/translations'
 import type { RescueUnit } from '../../types'
@@ -15,8 +17,7 @@ const STATUS_KEY: Record<RescueUnit['status'], TranslationKey> = {
   busy: 'unitStatus.busy',
 }
 
-/** One rescue unit in the roster. */
-export function UnitRow({ unit }: { unit: RescueUnit }) {
+function UnitRowInner({ unit }: { unit: RescueUnit }) {
   const { t } = useTranslation()
 
   return (
@@ -30,3 +31,6 @@ export function UnitRow({ unit }: { unit: RescueUnit }) {
     </div>
   )
 }
+
+/** One rescue unit in the roster. */
+export const UnitRow = memo(UnitRowInner)

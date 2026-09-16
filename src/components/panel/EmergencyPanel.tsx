@@ -1,7 +1,9 @@
+import { useMemo } from 'react'
+
 import { incidentsAt, operationsSummaryAt, roadAccessCutAt, unitsAt } from '../../data/opsScenario'
 import { useTranslation } from '../../i18n/useTranslation'
 import { useOpsStore } from '../../store/opsStore'
-import { useScenarioStore } from '../../store/scenarioStore'
+import { selectWholeMinute, useScenarioStore } from '../../store/scenarioStore'
 import { IncidentRow } from './IncidentRow'
 import { UnitRow } from './UnitRow'
 
@@ -18,17 +20,24 @@ const STATUS_RANK = { pending: 0, en_route: 1, assigned: 2, resolved: 3 } as con
  */
 export function EmergencyPanel() {
   const { t } = useTranslation()
-  const minute = useScenarioStore((state) => state.minute)
+  // Nothing in this panel can show a fraction of a minute, and re-sorting
+  // fifteen rows on every animation frame is what made the list stutter
+  // while the scenario played.
+  const minute = useScenarioStore(selectWholeMinute)
   const selectedIncidentId = useOpsStore((state) => state.selectedIncidentId)
   const toggleIncident = useOpsStore((state) => state.toggle)
 
-  const summary = operationsSummaryAt(minute)
-  const units = unitsAt(minute)
-  const incidents = incidentsAt(minute).sort(
-    (a, b) =>
-      STATUS_RANK[a.status] - STATUS_RANK[b.status] ||
-      a.priority - b.priority ||
-      b.reportedAtMinute - a.reportedAtMinute,
+  const summary = useMemo(() => operationsSummaryAt(minute), [minute])
+  const units = useMemo(() => unitsAt(minute), [minute])
+  const incidents = useMemo(
+    () =>
+      incidentsAt(minute).sort(
+        (a, b) =>
+          STATUS_RANK[a.status] - STATUS_RANK[b.status] ||
+          a.priority - b.priority ||
+          b.reportedAtMinute - a.reportedAtMinute,
+      ),
+    [minute],
   )
 
   return (
